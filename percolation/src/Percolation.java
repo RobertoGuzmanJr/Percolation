@@ -1,56 +1,61 @@
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 public class Percolation {
-   private int _N;
-   private boolean[] _percolationGrid;	//this will be of size _N*_N + 2 (the last two are for the virtual top and bottom)
-   private WeightedQuickUnionUF _tree;	//this represents the connectivity of the sites (size will also be _N*_N + 2, the last two are for virtual top and bottom)
-
+   private int n;
+   private boolean[] percolationGrid;	//this will be of size _N*_N + 2 (the last two are for the virtual top and bottom)
+   private WeightedQuickUnionUF tree;	//this represents the connectivity of the sites (size will also be _N*_N + 2,
+   										//the last two are for virtual top and bottom)
+   
    // create N-by-N grid, with all sites blocked
    public Percolation(int N)
    {
-	   _N = N;
-	   _percolationGrid = new boolean[N*N + 2];
-	   _tree = new WeightedQuickUnionUF(N*N + 2);
-	   //link the top row with the virtual top and the bottom row with the virtual bottom
-	   for(int j = 1; j <= _N; j++)
+	   if (N <= 0)
 	   {
-		   _tree.union(j, 0);
-		   _tree.union(_N*(_N-1)+j, _N*_N+1);
+		   throw new java.lang.IllegalArgumentException();
 	   }
-	   for(int i = 0; i < _percolationGrid.length; i++)
+	   n = N;
+	   percolationGrid = new boolean[N*N + 2];
+	   tree = new WeightedQuickUnionUF(N*N + 2);
+	   //link the top row with the virtual top and the bottom row with the virtual bottom
+	   for (int j = 1; j <= n; j++)
 	   {
-		   _percolationGrid[i] = false;
+		   tree.union(j, 0);
+		   tree.union(n*(n-1)+j, n*n+1);
+	   }
+	   for (int i = 0; i < percolationGrid.length; i++)
+	   {
+		   percolationGrid[i] = false;
 	   }
    }
 
    // open site (row i, column j) if it is not open already
    public void open(int i, int j)
    {		
-	   if(IsValidCoordinate(i) && IsValidCoordinate(j) && !isOpen(i,j))
+	   if (isValidCoordinate(i) && isValidCoordinate(j) && !isOpen(i, j))
 	   {
-		   int index = Convert2DTo1D(i,j);
+		   int index = convert2DTo1D(i, j);
 		   //if the top row is opened and the virtual is closed, open it
-		   if(index-_N <= 0 && _percolationGrid[0] == false)
+		   if (index-n <= 0 && !percolationGrid[0])
 		   {
-			   _percolationGrid[0] = true;
+			   percolationGrid[0] = true;
 		   }
 		   //if the bottom row is opened and the virtual is closed, open it.
-		   if(index + _N > _N*_N && _percolationGrid[_N*_N+1] == false)
+		   if (index + n > n*n && !percolationGrid[n*n+1])
 		   {
-			   _percolationGrid[_N*_N+1] = true;
+			   percolationGrid[n*n+1] = true;
 		   }
-		   _percolationGrid[index] = true;
-		   ProcessNeighbors(index,i,j);
+		   percolationGrid[index] = true;
+		   processNeighbors(index, i, j);
 	   }
    }
 
    // is site (row i, column j) open?
    public boolean isOpen(int i, int j)
    {
-	  if(IsValidCoordinate(i) && IsValidCoordinate(j))
+	  if (isValidCoordinate(i) && isValidCoordinate(j))
 	  {
-		  int index = Convert2DTo1D(i,j);
-		  return _percolationGrid[index];
+		  int index = convert2DTo1D(i, j);
+		  return percolationGrid[index];
 	  }
 	  return false;
    }
@@ -58,10 +63,10 @@ public class Percolation {
    // is site (row i, column j) full?
    public boolean isFull(int i, int j)
    {
-	   if(IsValidCoordinate(i) && IsValidCoordinate(j))
+	   if (isValidCoordinate(i) && isValidCoordinate(j))
 	   {
-		   int index = Convert2DTo1D(i,j);
-		   return (_tree.connected(index, 0) && isOpen(i,j));
+		   int index = convert2DTo1D(i, j);
+		   return (tree.connected(index, 0) && isOpen(i, j));
 	   }
 	   return false;
    }
@@ -69,13 +74,13 @@ public class Percolation {
    // does the system percolate?
    public boolean percolates()
    {
-	   return (_tree.connected(0, _N*_N+1) && _percolationGrid[0] == true && _percolationGrid[_N*_N+1] == true);
+	   return (tree.connected(0, n*n+1) && percolationGrid[0] && percolationGrid[n*n+1]);
    }
 
    //this checks to see if the pair of coordinates is valid
-   private boolean IsValidCoordinate(int index)
+   private boolean isValidCoordinate(int index)
    {
-	   if(index <= 0 || index > _N)
+	   if (index <= 0 || index > n)
 	   {
 		   throw new IndexOutOfBoundsException("index out of bounds!");
 	   }
@@ -83,39 +88,39 @@ public class Percolation {
    }
 
    //this converts a pair of coordinates to the proper index in our data structure
-   private int Convert2DTo1D(int i, int j)
+   private int convert2DTo1D(int i, int j)
    {
-	   return _N*(i-1)+j;
+	   return n*(i-1)+j;
    }
    
    //this will mark the neighbors of an open site as connected
-   private void ProcessNeighbors(int index,int i, int j)
+   private void processNeighbors(int index, int i, int j)
    {
 	   //process top neighbor if it exists
-	   if(index - _N > 0 && isOpen(i-1,j))
+	   if (index - n > 0 && isOpen(i-1, j))
 	   {
-           ProcessNeighborPair(index,index-_N);
+           processNeighborPair(index, index-n);
 	   }
 	   //process right neighbor if it exists
-	   if(index > 0 && index % _N != 0 && isOpen(i,j+1))
+	   if (index > 0 && index % n != 0 && isOpen(i, j+1))
 	   {
-	       ProcessNeighborPair(index,index+1);   
+	       processNeighborPair(index, index+1);   
 	   }
 	   //process the bottom neighbor if it exists
-	   if(index + _N <= _N*_N && isOpen(i+1,j))
+	   if (index + n <= n*n && isOpen(i+1, j))
 	   {
-		   ProcessNeighborPair(index,index+_N);   
+		   processNeighborPair(index, index+n);   
 	   }
 	   //process left neighbor if it exists
-	   if((index - 1)%_N != 0 && isOpen(i,j-1))
+	   if ((index - 1) % n != 0 && isOpen(i, j-1))
 	   {
-		   ProcessNeighborPair(index,index-1);   
+		   processNeighborPair(index, index-1);   
 	   }	   
    }
    
    //this will process a given pair of neighbors
-   private void ProcessNeighborPair(int index, int neighbor)
+   private void processNeighborPair(int index, int neighbor)
    {
-       _tree.union(index, neighbor);
+       tree.union(index, neighbor);
    }   
 }
